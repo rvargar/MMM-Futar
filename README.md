@@ -110,6 +110,10 @@ var config = {
 |------------------------|-----------
 | `stopId`               | **REQUIRED** The unique identifier of the stop. See below for more details about how to acquire it.<br><br> **Type:** `string` <br>**Default value:** `(empty)`
 | `routeId`              | *Optional* The unique identifier of the route, which can be used to filter the departure times, if multiple routes share the same stop. <br><br> **Type:** `string` <br>**Default value:** `(empty)`
+| `apiKey`               | *Optional* Your BKK Futár API key, appended to every request as `&key=...`. <br><br> **Type:** `string` <br>**Default value:** `(empty)`
+| `filterByStopId`       | *Optional* Keep only the departures whose own `stopId` equals the configured `stopId`. Needed for "special stations" where the API merges both platforms into one list (see below). <br><br> **Type:** `boolean` <br>**Default value:** `false`
+| `directionId`          | *Optional* Keep only trips running in this direction (`'0'` or `'1'`, the `directionId` of the trip in the Futár response). <br><br> **Type:** `string` <br>**Default value:** `null`
+| `headsign`             | *Optional* Keep only departures with this headsign, e.g. `'Szentendre'` (case-insensitive). Note that short-turn trips have a different headsign. <br><br> **Type:** `string` <br>**Default value:** `null`
 | `minutesAfter`         | *Optional* The number of minutes of how far the module should list the departure times in the future. Increase this value to show more departure times, or decrease it to display less, and make the module smaller. <br><br>**Type:** `int` (minutes) <br>**Default value:** `50`
 | `hideStopTimesInNextMinutes` | *Optional* The number of next minutes for which the module should not display departure times. For example if the nearest stop is in a 5-minute walk from your home, you can set this value to `5` to not show departures in the next 5 minutes. <br><br>**Type:** `int` (minutes) <br>**Default value:** `0`
 | `updateInterval`       | *Optional* The frequency of when the module should query the departure times from the Futár service. <br><br>**Type:** `int` (milliseconds) <br>**Default value:** `60000` milliseconds (1 minute)
@@ -169,6 +173,25 @@ To get the stop and route identifiers required by this module, follow these step
 6. Hover your mouse over your stop.
 
 7. Right click, copy the link address and it should reveal the `stopId` and the `routeId` as well.
+
+## Special stations (both directions merged)
+
+Some stations, e.g. the H5 HÉV stop *Szentistvántelep* (`#09209`), have two platform ids (`BKK_09209214` towards Szentendre, `BKK_09209215` towards Batthyány tér), but the Futár API returns the **same merged list** of departures for both of them. Every departure in that list still carries its real platform `stopId` (and its trip carries a `directionId`), so set `filterByStopId: true` to show only one direction:
+
+```js
+{
+  module: 'MMM-Futar',
+  header: 'Szentistvántelep → Szentendre',
+  config: { stopId: 'BKK_09209214', filterByStopId: true }
+},
+{
+  module: 'MMM-Futar',
+  header: 'Szentistvántelep → Batthyány tér',
+  config: { stopId: 'BKK_09209215', filterByStopId: true }
+}
+```
+
+Alternatively, `directionId: '0'` (Szentendre) / `'1'` (Batthyány tér) gives the same result for the H5.
 
 ## How it works
 

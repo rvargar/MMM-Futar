@@ -34,7 +34,8 @@ module.exports = NodeHelper.create({
   _getData(moduleId, config) {
     const self = this;
 
-    const url = `https://futar.bkk.hu/api/query/v1/ws/otp/api/where/arrivals-and-departures-for-stop.json?stopId=${config.stopId}&onlyDepartures=true&minutesBefore=0&minutesAfter=${config.minutesAfter}`;
+    const keyParam = config.apiKey ? `&key=${encodeURIComponent(config.apiKey)}` : '';
+    const url = `https://futar.bkk.hu/api/query/v1/ws/otp/api/where/arrivals-and-departures-for-stop.json?stopId=${config.stopId}&onlyDepartures=true&minutesBefore=0&minutesAfter=${config.minutesAfter}${keyParam}`;
 
     request(url, (error, response, body) => {
       if (!error && response.statusCode === 200) {

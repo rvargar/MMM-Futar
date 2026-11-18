@@ -3,6 +3,11 @@
 All notable changes to this project is documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+- ADDED: `filterByStopId`, `directionId` and `headsign` options to separate the directions of "special stations" (e.g. H5 Szentistvántelep) where the Futár API merges both platforms into one list.
+- ADDED: `apiKey` option, so the Futár API key no longer has to be hard-coded in `node_helper.js`.
+
 ## [1.6.1]
 
 - FIXED: New data fetch mechanism works well with multiple module instances.
