@@ -6,6 +6,7 @@
 
 Module.register('MMM-Futar', {
   defaults: {
+    apiKey: '', // BKK Futár API key (https://opendata.bkk.hu)
     updateInterval: 60000,
     hideStopTimesInNextMinutes: 0,
     minutesAfter: 50,
@@ -17,6 +18,12 @@ Module.register('MMM-Futar', {
     showSymbolInStopTime: false, // true | false
     showRouteNameInStopTime: false, // true | false
     maxNumberOfItems: 3,
+    // Special stations (e.g. H5 Szentistvántelep): the API merges both platforms of the
+    // station into one list, whichever platform stopId is queried. These options keep
+    // only the departures that belong to the requested platform / direction.
+    filterByStopId: false, // true | false - keep only stop times whose stopId equals config.stopId
+    directionId: null, // null | '0' | '1' - keep only trips running in this direction
+    headsign: null, // null | 'Szentendre' - keep only stop times with this headsign (case-insensitive)
     coloredSymbolInHead: true, // true | false
     coloredTextInHead: true, // true | false
     coloredSymbolInStopTime: true, // true | false
@@ -310,7 +317,7 @@ Module.register('MMM-Futar', {
       const alertIds = this._getAlertIdsFromStopTime(stopTime);
       const alertHeader = this._getAlertHeader(alerts, alertIds);
 
-      if (!this.config.routeId || routeId === this.config.routeId) {
+      if ((!this.config.routeId || routeId === this.config.routeId) && this._matchesDirectionFilters(stopTime, trip)) {
         const departureTimestamp = this._getDepartureTimestampFromStopTime(stopTime);
         const timeInLocalTime = this._convertTimestampToLocalTime(departureTimestamp);
         const departureTime = {
@@ -349,6 +356,28 @@ Module.register('MMM-Futar', {
     }
 
     this.hasData = true;
+  },
+
+  _matchesDirectionFilters(stopTime, trip) {
+    const { filterByStopId, directionId, headsign, stopId } = this.config;
+
+    if (filterByStopId && stopTime.stopId && stopTime.stopId !== stopId) {
+      return false;
+    }
+
+    if (directionId !== null && directionId !== undefined && directionId !== ''
+      && String(trip.directionId) !== String(directionId)) {
+      return false;
+    }
+
+    if (headsign) {
+      const stopTimeHeadsign = (stopTime.stopHeadsign || trip.tripHeadsign || '').toLowerCase();
+      if (stopTimeHeadsign !== String(headsign).toLowerCase()) {
+        return false;
+      }
+    }
+
+    return true;
   },
 
   _getAllStopTimesFromResponse(response) {
